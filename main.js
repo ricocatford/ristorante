@@ -1,6 +1,6 @@
 import data from "./data/products.json" assert { type: "json" };
 
-const app = document.getElementById("app");
+const shop = document.getElementById("shop");
 let cart = [];
 
 function displayProducts(products) {
@@ -17,8 +17,10 @@ function getProductCard(product) {
         <h2>${product.name}</h2>
         <p>Ingredients:</p>
     `;
-    app.appendChild(productArticle).appendChild(productIngredients);
-    app.appendChild(productControls);
+    shop.appendChild(productArticle).append(
+        productIngredients,
+        productControls
+    );
 }
 
 function listProductIngredients(productIngredients) {
@@ -32,48 +34,37 @@ function listProductIngredients(productIngredients) {
 }
 
 function getProductCardControls(product) {
+    const productControlsWrapper = document.createElement("div");
     const productButton = document.createElement("button");
+    const productDecreaseQtyButton = document.createElement("button");
+    const productIncreaseQtyButton = document.createElement("button");
+    const productQtyInput = document.createElement("input");
     productButton.innerText = "Add to cart";
-    productButton.addEventListener("click", () => addProductToCart(product));
-    return productButton;
+    productDecreaseQtyButton.innerText = "-";
+    productQtyInput.type = "number";
+    productQtyInput.disabled = true;
+    productQtyInput.value = 1;
+    productIncreaseQtyButton.innerText = "+";
+    productDecreaseQtyButton.addEventListener("click", () =>
+        updateProductQuantityInput("decrease", productQtyInput)
+    );
+    productIncreaseQtyButton.addEventListener("click", () =>
+        updateProductQuantityInput("increase", productQtyInput)
+    );
+    productButton.addEventListener("click", () =>
+        addProductToCart(product, parseInt(productQtyInput.value))
+    );
+    productControlsWrapper.append(
+        productDecreaseQtyButton,
+        productQtyInput,
+        productIncreaseQtyButton,
+        productButton
+    );
+    return productControlsWrapper;
 }
 
-function addProductToCart(product, quantity) {
-    const existingProduct = searchProductInCart(product.name);
-    if (existingProduct) {
-        existingProduct.quantity++;
-        console.log(cart);
-    } else {
-        cart.push({
-            name: product.name,
-            quantity: 1,
-        });
-        console.log(cart);
-    }
-}
-
-function searchProductInCart(productName) {
-    return cart.find((product) => product.name === productName);
-}
-
-const decreaseProductQuantityButton =
-    document.getElementById("decrease-quantity");
-
-decreaseProductQuantityButton.addEventListener("click", () =>
-    updateProductQuantityInput("decrease")
-);
-
-const increaseProductQuantityButton =
-    document.getElementById("increase-quantity");
-
-increaseProductQuantityButton.addEventListener("click", () =>
-    updateProductQuantityInput("increase")
-);
-
-const quantityInput = document.querySelector("input[name='product-quantity']");
-
-function updateProductQuantityInput(expression) {
-    switch (expression) {
+function updateProductQuantityInput(action, quantityInput) {
+    switch (action) {
         case "decrease":
             if (quantityInput.value > 1) quantityInput.value--;
             break;
@@ -83,6 +74,24 @@ function updateProductQuantityInput(expression) {
         default:
             console.log("Error has occured, please try again.");
     }
+}
+
+function addProductToCart(product, quantity) {
+    const existingProduct = searchProductInCart(product.name);
+    if (existingProduct) {
+        existingProduct.quantity += quantity;
+        console.log(cart);
+    } else {
+        cart.push({
+            name: product.name,
+            quantity: quantity,
+        });
+        console.log(cart);
+    }
+}
+
+function searchProductInCart(productName) {
+    return cart.find((product) => product.name === productName);
 }
 
 displayProducts(data);
